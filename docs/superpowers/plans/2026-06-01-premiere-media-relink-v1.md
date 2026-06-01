@@ -59,7 +59,7 @@ premiere-relink/
 name = "premiere-relink"
 version = "0.1.0"
 description = "프리미어 프로 미디어 자동 재연결 엔진"
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -754,7 +754,8 @@ Expected: FAIL (`cannot import name 'match_refs'`)
 
 def _apply_rule(path: str, rule: tuple[str, str]) -> str | None:
     old_prefix, new_prefix = rule
-    if path.startswith(old_prefix):
+    # 경로 경계 보호: "/Volumes/Disk" 규칙이 "/Volumes/Disk2/..."에 잘못 적용되지 않도록
+    if old_prefix == "" or path.startswith(old_prefix + "/"):
         return new_prefix + path[len(old_prefix):]
     return None
 
@@ -786,7 +787,7 @@ def match_refs(refs: list[MediaRef],
         rule_hit = None
         for rule in rules:
             new_path = _apply_rule(ref.normalized_path, rule)
-            if new_path and os.path.isfile(new_path) and _type_ok(ref.normalized_path, Candidate(new_path, 0, media_type(new_path))):
+            if new_path and os.path.isfile(new_path) and media_type(ref.normalized_path) == media_type(new_path):
                 rule_hit = (new_path, rule)
                 break
         if rule_hit:
