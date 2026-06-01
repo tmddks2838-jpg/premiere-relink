@@ -1,5 +1,5 @@
 from __future__ import annotations
-from engine.matcher import common_suffix_len, derive_prefix_rules, match_refs
+from engine.matcher import common_suffix_len, derive_prefix_rules, match_refs, _apply_rule
 from engine.models import MediaRef, Candidate, Confidence
 
 
@@ -67,3 +67,31 @@ def test_type_mismatch_is_rejected():
     index = {"take.mp4": [Candidate("/new/take.mp4", 10, "audio")]}
     results = match_refs([ref], index, rules=[])
     assert results[0].confidence is Confidence.MISSING
+
+
+def test_apply_rule_respects_path_boundary():
+    assert _apply_rule("/Volumes/Disk2/a.mp4", ("/Volumes/Disk", "/new")) is None
+    assert _apply_rule("/Volumes/Disk/a.mp4", ("/Volumes/Disk", "/new")) == "/new/a.mp4"
+
+
+def test_common_suffix_len_edges():
+    assert common_suffix_len("/a/b.mp4", "/x/y.mov") == 0
+    assert common_suffix_len("/a/b/c.mp4", "/a/b/c.mp4") == 3
+
+
+def test_rank_prefers_rule_consistent_candidate():
+    ref = MediaRef("/old/dup.mov", "/old/dup.mov", 1)
+    index = {"dup.mov": [
+        Candidate("/x/dup.mov", 10, "video"),
+        Candidate("/new/dup.mov", 10, "video"),
+    ]}
+    # 규칙이 /new/dup.mov 를 가리키지만 실제 파일이 없어 AUTO는 안 되고 ASK,
+    # 단 규칙 일치 후보가 맨 앞에 정렬되어야 함
+    results = match_refs([ref], index, rules=[("/old", "/new")])
+    assert results[0].confidence is Confidence.ASK
+    assert results[0].candidates[0].path == "/new/dup.mov"
+
+
+def test_empty_inputs():
+    assert match_refs([], {}, []) == []
+    assert derive_prefix_rules([], {}) == []

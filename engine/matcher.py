@@ -16,7 +16,7 @@ def common_suffix_len(a: str, b: str) -> int:
     return n
 
 
-def _split_prefix(path: str, suffix_components: int) -> tuple:
+def _split_prefix(path: str, suffix_components: int) -> tuple[str, str]:
     """경로를 (접두, 후행) 으로 나눈다. 후행은 suffix_components 개."""
     parts = path.strip("/").split("/")
     cut = len(parts) - suffix_components
@@ -24,8 +24,8 @@ def _split_prefix(path: str, suffix_components: int) -> tuple:
     return prefix, "/" + "/".join(parts[cut:])
 
 
-def derive_prefix_rules(refs: list,
-                        index: dict) -> list:
+def derive_prefix_rules(refs: list[MediaRef],
+                        index: dict[str, list[Candidate]]) -> list[tuple[str, str]]:
     """오프라인 ref와 색인 후보를 비교해 (옛 접두 → 새 접두) 규칙을 도출한다.
     폴더 이동 / 볼륨명 변경 / 계정 변경이 모두 이 규칙으로 표현된다."""
     votes: Counter = Counter()
@@ -43,9 +43,9 @@ def derive_prefix_rules(refs: list,
     return [rule for rule, _ in votes.most_common()]
 
 
-def _apply_rule(path: str, rule: tuple) -> str:
+def _apply_rule(path: str, rule: tuple[str, str]) -> str | None:
     old_prefix, new_prefix = rule
-    if path.startswith(old_prefix):
+    if old_prefix == "" or path.startswith(old_prefix + "/"):
         return new_prefix + path[len(old_prefix):]
     return None
 
@@ -54,22 +54,27 @@ def _type_ok(ref_path: str, cand: Candidate) -> bool:
     return media_type(ref_path) == cand.media_type
 
 
-def _rank(ref: MediaRef, cands: list,
-          rules: list) -> list:
+def _parent_name(path: str) -> str:
+    parts = path.rstrip("/").split("/")
+    return parts[-2] if len(parts) >= 2 else ""
+
+
+def _rank(ref: MediaRef, cands: list[Candidate],
+          rules: list[tuple[str, str]]) -> list[Candidate]:
     """동명 후보 순위화: 규칙 일치 → 부모폴더명 유사 → 경로 길이 순."""
-    ref_parent = ref.normalized_path.rsplit("/", 2)[-2] if "/" in ref.normalized_path else ""
+    ref_parent = _parent_name(ref.normalized_path)
 
     def key(c: Candidate):
         rule_hit = any(_apply_rule(ref.normalized_path, r) == c.path for r in rules)
-        parent = c.path.rsplit("/", 2)[-2] if "/" in c.path else ""
+        parent = _parent_name(c.path)
         return (not rule_hit, parent != ref_parent, len(c.path))
 
     return sorted(cands, key=key)
 
 
-def match_refs(refs: list,
-               index: dict,
-               rules: list) -> list:
+def match_refs(refs: list[MediaRef],
+               index: dict[str, list[Candidate]],
+               rules: list[tuple[str, str]]) -> list[MatchResult]:
     """오프라인 ref들을 매칭하고 신뢰도를 판정한다."""
     results: list = []
     for ref in refs:
@@ -77,7 +82,7 @@ def match_refs(refs: list,
         rule_hit = None
         for rule in rules:
             new_path = _apply_rule(ref.normalized_path, rule)
-            if new_path and os.path.isfile(new_path) and _type_ok(ref.normalized_path, Candidate(new_path, 0, media_type(new_path))):
+            if new_path and os.path.isfile(new_path) and media_type(ref.normalized_path) == media_type(new_path):
                 rule_hit = (new_path, rule)
                 break
         if rule_hit:
