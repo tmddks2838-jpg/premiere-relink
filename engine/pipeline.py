@@ -1,8 +1,8 @@
 from __future__ import annotations
 import os
 from dataclasses import dataclass, field
-from engine.models import MediaRef, MatchResult, Confidence
-from engine import reader, detector, indexer, matcher
+from engine.models import MediaRef, MatchResult, Confidence, Candidate
+from engine import reader, detector, indexer, matcher, writer
 
 DEFAULT_ROOTS = ["~/Desktop", "~/Documents", "~/Movies"]
 
@@ -48,11 +48,6 @@ def analyze(project_path: str, search_roots: list[str] | None = None) -> RelinkP
                       cloud=cls.cloud, online_count=len(cls.online))
 
 
-import os as _os
-from engine import writer
-from engine.models import Candidate
-
-
 @dataclass
 class RelinkResult:
     output_path: str
@@ -85,7 +80,7 @@ def apply(plan: RelinkPlan,
     new_xml = writer.apply_replacements(plan.xml, replacements)
 
     if output_path is None:
-        root, ext = _os.path.splitext(plan.project_path)
+        root, ext = os.path.splitext(plan.project_path)
         output_path = f"{root}_relinked{ext}"
     writer.write_prproj(new_xml, output_path)
 

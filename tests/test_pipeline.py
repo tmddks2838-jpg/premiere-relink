@@ -49,4 +49,6 @@ def test_apply_writes_relinked_and_backup(tmp_path):
     out_xml = gzip.decompress(open(result.output_path, "rb").read()).decode("utf-8")
     assert str(newdir / "a.mp4") in out_xml
     assert "/old/무제 폴더/moved/a.mp4" not in out_xml
+    assert "/old/무제 폴더/moved/b.mov" not in out_xml
+    assert result.missing_count == 0
     assert result.relinked_count == 2
