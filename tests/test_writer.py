@@ -30,3 +30,9 @@ def test_apply_replacements_counts():
     out = apply_replacements(xml, {"/x.mov": "/y.mov"})
     assert out.count("/y.mov") == 2
     assert "/x.mov" not in out
+
+
+def test_write_prproj_roundtrip(tmp_path):
+    out = tmp_path / "out.prproj"
+    write_prproj("<X>hi</X>", str(out))
+    assert gzip.decompress(out.read_bytes()).decode("utf-8") == "<X>hi</X>"
