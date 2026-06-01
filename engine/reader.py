@@ -21,8 +21,9 @@ def decompress_prproj(path: str) -> str:
 
 
 def _normalize(raw: str) -> str:
-    """부트볼륨 접두(/Volumes/<name>/)를 루트(/)로 환산한 경로 후보를 만든다.
-    비부트 외장(/Volumes/Disk/...)은 그대로 둔다 (detector가 존재여부로 판단)."""
+    """`/Volumes/<볼륨명>/Users/...` 형태를 `/Users/...`로 환산한 경로 후보를 만든다.
+    (부트볼륨이 `/Volumes/<이름>`으로도 보이는 케이스 대응.) 그 외 형태는 그대로 둔다 —
+    detector가 raw·normalized를 모두 시도해 실제 존재 여부로 판정한다."""
     m = re.match(r"^/Volumes/[^/]+(/Users/.*)$", raw)
     if m:
         return m.group(1)

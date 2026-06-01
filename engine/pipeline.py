@@ -64,7 +64,13 @@ def apply(plan: RelinkPlan,
     - AUTO: 자동 적용
     - ASK: ask_choices에 선택이 있는 항목만 적용
     - MISSING / 선택 안 한 ASK: 건드리지 않음
+
+    원본 .prproj는 절대 덮어쓰지 않는다: output_path가 원본과 같으면 거부한다.
     """
+    if output_path is not None and \
+            os.path.abspath(output_path) == os.path.abspath(plan.project_path):
+        raise ValueError("output_path는 원본과 달라야 합니다 (원본 덮어쓰기 금지).")
+
     ask_choices = ask_choices or {}
     replacements: dict[str, str] = {}
 
