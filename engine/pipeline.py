@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from engine.models import MediaRef, MatchResult, Confidence, Candidate
 from engine import reader, detector, indexer, matcher, writer
 
-DEFAULT_ROOTS = ["~/Desktop", "~/Documents", "~/Movies"]
+DEFAULT_ROOTS = ["~"]
 
 
 @dataclass
@@ -32,13 +32,19 @@ def _expand(roots: list[str]) -> list[str]:
     return [os.path.expanduser(r) for r in roots]
 
 
+def _default_roots() -> list[str]:
+    home = os.path.expanduser("~")
+    # 홈 전체를 기본으로, 단 외장하드(/Volumes)는 명시적으로 추가할 때만 포함
+    return [home]
+
+
 def analyze(project_path: str, search_roots: list[str] | None = None) -> RelinkPlan:
     """프로젝트를 읽고 오프라인 미디어를 매칭한 '계획'을 반환한다 (쓰기 없음)."""
     xml, refs = reader.read_prproj(project_path)
     cls = detector.classify(refs)
 
     project_dir = os.path.dirname(os.path.abspath(project_path))
-    roots = [project_dir] + _expand(search_roots or DEFAULT_ROOTS)
+    roots = [project_dir] + (_expand(search_roots) if search_roots else _default_roots())
     index = indexer.build_index(roots)
 
     rules = matcher.derive_prefix_rules(cls.offline, index)
@@ -54,6 +60,7 @@ class RelinkResult:
     backup_path: str
     relinked_count: int
     missing_count: int
+    replacements: dict[str, str] = field(default_factory=dict)  # before → after
 
 
 def apply(plan: RelinkPlan,
@@ -92,4 +99,5 @@ def apply(plan: RelinkPlan,
 
     missing = sum(1 for r in plan.results if r.confidence is Confidence.MISSING)
     return RelinkResult(output_path=output_path, backup_path=backup_path,
-                        relinked_count=len(replacements), missing_count=missing)
+                        relinked_count=len(replacements), missing_count=missing,
+                        replacements=replacements)

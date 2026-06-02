@@ -1,7 +1,41 @@
 from __future__ import annotations
+import json
 import os
+import sys
+import subprocess
 from collections import Counter
 from engine.models import MediaRef, Candidate, MatchResult, Confidence, media_type
+
+DURATION_TOLERANCE_SECS = 0.5  # 길이 허용 오차
+
+_FFPROBE_CANDIDATES = [
+    # PyInstaller 번들 내부
+    os.path.join(getattr(sys, "_MEIPASS", ""), "ffprobe"),
+    # 개발 환경 known path
+    os.path.expanduser("~/.local/bin/ffprobe"),
+    # PATH
+    "ffprobe",
+]
+
+
+def _ffprobe_bin() -> str:
+    for p in _FFPROBE_CANDIDATES:
+        if p and (p == "ffprobe" or os.path.isfile(p)):
+            return p
+    return "ffprobe"
+
+
+def _ffprobe_duration(path: str) -> float | None:
+    """ffprobe로 파일의 재생 길이(초)를 반환. 실패 시 None."""
+    try:
+        r = subprocess.run(
+            [_ffprobe_bin(), "-v", "quiet", "-print_format", "json", "-show_format", path],
+            capture_output=True, text=True, timeout=10
+        )
+        info = json.loads(r.stdout)
+        return float(info["format"]["duration"])
+    except Exception:
+        return None
 
 
 def common_suffix_len(a: str, b: str) -> int:
@@ -96,10 +130,38 @@ def match_refs(refs: list[MediaRef],
         name = ref.normalized_path.rsplit("/", 1)[-1].lower()
         cands = [c for c in index.get(name, []) if _type_ok(ref.normalized_path, c)]
         if not cands:
-            results.append(MatchResult(ref, Confidence.MISSING))
+            # 3) duration 매칭 — 이름이 바뀐 파일을 ffprobe로 찾는다
+            dur_result = _match_by_duration(ref, index)
+            results.append(dur_result)
         elif len(cands) == 1:
             results.append(MatchResult(ref, Confidence.AUTO, chosen=cands[0]))
         else:
             ranked = _rank(ref, cands, rules)
             results.append(MatchResult(ref, Confidence.ASK, candidates=ranked))
     return results
+
+
+def _match_by_duration(ref: MediaRef,
+                       index: dict[str, list[Candidate]]) -> MatchResult:
+    """prproj duration을 알고 있는 MISSING ref에 대해 ffprobe로 후보를 찾는다.
+    duration을 모르거나 image 타입이면 바로 MISSING 반환."""
+    if ref.duration_secs is None or media_type(ref.normalized_path) == "image":
+        return MatchResult(ref, Confidence.MISSING)
+
+    ref_type = media_type(ref.normalized_path)
+    matched: list[Candidate] = []
+    for cands in index.values():
+        for cand in cands:
+            if cand.media_type != ref_type:
+                continue
+            cand_dur = _ffprobe_duration(cand.path)
+            if cand_dur is None:
+                continue
+            if abs(cand_dur - ref.duration_secs) <= DURATION_TOLERANCE_SECS:
+                matched.append(cand)
+
+    if not matched:
+        return MatchResult(ref, Confidence.MISSING)
+    if len(matched) == 1:
+        return MatchResult(ref, Confidence.ASK, candidates=matched)
+    return MatchResult(ref, Confidence.ASK, candidates=matched)

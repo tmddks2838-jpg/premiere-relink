@@ -3,3 +3,13 @@ __pycache__/
 .pytest_cache/
 .venv/
 *.backup-*.prproj
+
+# macOS 시스템
+.DS_Store
+
+# PyInstaller 빌드 산출물 (총 117MB — 절대 커밋 금지)
+build/
+dist/
+
+# 버려진 tkinter 앱 (참고용 보존하되 git 추적 제외)
+app.py

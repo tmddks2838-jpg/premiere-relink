@@ -31,9 +31,10 @@ class Confidence(Enum):
 @dataclass(frozen=True)
 class MediaRef:
     """프로젝트가 참조하는 미디어 경로 하나 (고유 문자열 단위)."""
-    raw_path: str          # XML에 적힌 원본 문자열 (볼륨 접두 포함 가능)
-    normalized_path: str   # 부트볼륨 접두 제거 등 정규화한 실경로 후보
-    count: int             # XML 내 등장 횟수
+    raw_path: str                    # XML에 적힌 원본 문자열 (볼륨 접두 포함 가능)
+    normalized_path: str             # 부트볼륨 접두 제거 등 정규화한 실경로 후보
+    count: int                       # XML 내 등장 횟수
+    duration_secs: float | None = None  # prproj에서 추출한 재생 길이 (초)
 
 
 @dataclass(frozen=True)
