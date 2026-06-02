@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Premiere Relink</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Helvetica Neue", sans-serif;
+    background: #1c1c1e;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    padding: 28px 32px 16px;
+    border-bottom: 1px solid #38383a;
+  }
+  header h1 { font-size: 20px; font-weight: 700; }
+  header p  { font-size: 12px; color: #8e8e93; margin-top: 2px; }
+  main { flex: 1; padding: 24px 32px; max-width: 800px; width: 100%; margin: 0 auto; }
+
+  .card {
+    background: #2c2c2e;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+
+  /* 파일 선택 영역 */
+  .drop-zone {
+    border: 2px dashed #48484a;
+    border-radius: 10px;
+    padding: 56px 40px;
+    text-align: center;
+    transition: border-color .2s;
+  }
+  .drop-zone.dragover { border-color: #0a84ff; background: rgba(10,132,255,.06); }
+  .drop-zone-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .drop-zone-sub   { font-size: 13px; color: #8e8e93; margin-bottom: 24px; }
+
+  /* 버튼 */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .15s;
+    font-family: inherit;
+  }
+  .btn:hover { opacity: .85; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-blue  { background: #0a84ff; color: #fff; }
+  .btn-gray  { background: #48484a; color: #fff; }
+  .btn + .btn { margin-left: 8px; }
+
+  /* 통계 */
+  .stats { display: flex; gap: 12px; margin-bottom: 20px; }
+  .stat-card {
+    flex: 1; background: #2c2c2e;
+    border-radius: 10px; padding: 16px; text-align: center;
+  }
+  .stat-num   { font-size: 30px; font-weight: 700; }
+  .stat-label { font-size: 11px; color: #8e8e93; margin-top: 2px; }
+  .green { color: #30d158; }
+  .yellow{ color: #ff9f0a; }
+  .red   { color: #ff453a; }
+
+  /* 확인 필요 항목 */
+  .ask-item {
+    background: #2c2c2e; border-radius: 8px;
+    padding: 14px 16px; margin-bottom: 10px;
+  }
+  .ask-fname { font-size: 13px; font-weight: 600; color: #ff9f0a; }
+  .ask-path  { font-size: 10px; color: #8e8e93; margin-top: 2px; word-break: break-all; }
+  select {
+    width: 100%; margin-top: 10px;
+    background: #38383a; color: #fff;
+    border: 1px solid #58585a; border-radius: 6px;
+    padding: 8px 10px; font-size: 13px; font-family: inherit;
+  }
+
+  /* 프로그레스 */
+  .progress-wrap {
+    background: #38383a; border-radius: 6px;
+    height: 5px; overflow: hidden; margin: 16px 0;
+  }
+  .progress-bar {
+    height: 100%; background: #0a84ff; border-radius: 6px;
+    animation: slide 1.2s infinite linear; width: 40%;
+  }
+  @keyframes slide {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(300%); }
+  }
+
+  /* 완료 */
+  .done-title { font-size: 26px; font-weight: 700; text-align: center; color: #30d158; }
+  .done-sub   { text-align: center; color: #8e8e93; margin-top: 8px; font-size: 14px; }
+  .done-btns  { display: flex; justify-content: center; gap: 10px; margin-top: 24px; }
+
+  .section-title {
+    font-size: 12px; font-weight: 600; color: #8e8e93;
+    text-transform: uppercase; letter-spacing: .6px; margin-bottom: 10px;
+  }
+  .row-btns { display: flex; justify-content: space-between; margin-top: 20px; }
+  .hidden { display: none !important; }
+  .fname-badge {
+    display: inline-block; background: #38383a; border-radius: 6px;
+    padding: 4px 10px; font-size: 12px; color: #8e8e93; margin-bottom: 20px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Premiere Relink</h1>
+  <p>오프라인 미디어 자동 재연결</p>
+</header>
+
+<main>
+  <!-- 1. 파일 선택 -->
+  <div id="page-idle">
+    <div class="drop-zone" id="drop-zone">
+      <div class="drop-zone-title">프리미어 프로젝트 파일 선택</div>
+      <div class="drop-zone-sub">.prproj 파일을 선택하면 자동으로 분석합니다</div>
+      <button class="btn btn-blue" id="btn-pick" onclick="pickFile()">파일 선택하기</button>
+    </div>
+    <div style="margin-top:16px; display:flex; gap:8px; align-items:center;">
+      <input type="text" id="path-input"
+             placeholder="또는 여기에 .prproj 경로를 붙여넣으세요"
+             style="flex:1; background:#2c2c2e; border:1px solid #48484a; border-radius:8px;
+                    padding:10px 14px; color:#fff; font-size:13px; font-family:inherit;"
+             onkeydown="if(event.key==='Enter') submitPath()">
+      <button class="btn btn-gray" onclick="submitPath()">분석 시작</button>
+    </div>
+  </div>
+
+  <!-- 2. 분석/적용 중 -->
+  <div id="page-analyzing" class="hidden">
+    <div class="card" style="text-align:center;padding:56px;">
+      <div id="progress-msg" style="font-size:17px;font-weight:600;margin-bottom:6px;">분석 중...</div>
+      <div id="progress-fname" class="fname-badge"></div>
+      <div class="progress-wrap"><div class="progress-bar"></div></div>
+      <div style="font-size:12px;color:#8e8e93;">홈 폴더 전체를 탐색합니다. 잠시 기다려주세요.</div>
+    </div>
+  </div>
+
+  <!-- 3. 결과 검토 -->
+  <div id="page-review" class="hidden">
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-num green" id="cnt-auto">0</div>
+        <div class="stat-label">자동 연결</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num yellow" id="cnt-ask">0</div>
+        <div class="stat-label">확인 필요</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num red" id="cnt-missing">0</div>
+        <div class="stat-label">못 찾음</div>
+      </div>
+    </div>
+
+    <div id="ask-section" class="hidden">
+      <p class="section-title">확인 필요 항목 — 후보를 선택하세요</p>
+      <div id="ask-list"></div>
+    </div>
+
+    <div class="row-btns">
+      <button class="btn btn-gray" onclick="resetApp()">처음으로</button>
+      <button class="btn btn-blue" onclick="doApply()">재연결 적용하기 →</button>
+    </div>
+  </div>
+
+  <!-- 4. 완료 -->
+  <div id="page-done" class="hidden">
+    <div class="card" style="padding:48px;">
+      <div class="done-title">완료!</div>
+      <div class="done-sub" id="done-detail"></div>
+      <div class="done-btns">
+        <button class="btn btn-blue" id="btn-open-folder">폴더 열기</button>
+        <button class="btn btn-gray" onclick="resetApp()">처음으로</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+let projectPath = null;
+
+function show(id) {
+  ['page-idle','page-analyzing','page-review','page-done']
+    .forEach(p => document.getElementById(p).classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+// ── 파일 선택 (macOS 네이티브 다이얼로그) ────────────────────────────────────
+async function pickFile() {
+  const btn = document.getElementById('btn-pick');
+  btn.disabled = true;
+  btn.textContent = '창 열리는 중...';
+  try {
+    const res  = await fetch('/pick-file', { method: 'POST' });
+    const data = await res.json();
+    if (data.path) {
+      projectPath = data.path;
+      startAnalyze(data.path);
+    } else if (data.error && data.error !== '취소됨') {
+      alert('파일 선택 창을 열 수 없습니다.\n아래 경로 입력칸을 사용해 주세요.');
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '파일 선택하기';
+  }
+}
+
+function submitPath() {
+  const path = document.getElementById('path-input').value.trim();
+  if (!path) return;
+  if (!path.endsWith('.prproj')) { alert('.prproj 파일 경로를 입력하세요'); return; }
+  projectPath = path;
+  startAnalyze(path);
+}
+
+// ── 드래그 앤 드롭 지원 (경로 텍스트로 드롭) ─────────────────────────────────
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('dragover'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('dragover');
+  // macOS에서 파일을 드롭하면 경로를 텍스트로 읽을 수 있음
+  const items = e.dataTransfer.items;
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].kind === 'string') {
+      items[i].getAsString(s => {
+        const path = s.trim();
+        if (path.endsWith('.prproj')) { projectPath = path; startAnalyze(path); }
+      });
+    }
+  }
+});
+
+// ── 분석 ─────────────────────────────────────────────────────────────────────
+async function startAnalyze(path) {
+  show('page-analyzing');
+  document.getElementById('progress-msg').textContent   = '분석 중...';
+  document.getElementById('progress-fname').textContent = path.split('/').pop();
+
+  const res  = await fetch('/analyze', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ path }),
+  });
+  const data = await res.json();
+
+  if (data.error) { alert('오류: ' + data.error); show('page-idle'); return; }
+
+  document.getElementById('cnt-auto').textContent    = data.auto.length;
+  document.getElementById('cnt-ask').textContent     = data.ask.length;
+  document.getElementById('cnt-missing').textContent = data.missing.length;
+
+  const askList = document.getElementById('ask-list');
+  askList.innerHTML = '';
+  const askSec = document.getElementById('ask-section');
+
+  if (data.ask.length > 0) {
+    askSec.classList.remove('hidden');
+    data.ask.forEach(item => {
+      const div  = document.createElement('div');
+      div.className = 'ask-item';
+      const fname = item.path.split('/').pop();
+      const opts  = item.candidates.map(c => {
+        const cf = c.path.split('/').pop();
+        const cp = c.path.split('/').slice(-2, -1)[0] || '';
+        return `<option value="${c.path}">${cf}  ←  ${cp}/</option>`;
+      }).join('');
+      div.innerHTML = `
+        <div class="ask-fname">${fname}</div>
+        <div class="ask-path">${item.path}</div>
+        <select data-orig="${item.path}">
+          <option value="">건너뜀 (재연결 안 함)</option>
+          ${opts}
+        </select>`;
+      askList.appendChild(div);
+      if (item.candidates.length === 1)
+        div.querySelector('select').value = item.candidates[0].path;
+    });
+  } else {
+    askSec.classList.add('hidden');
+  }
+
+  show('page-review');
+}
+
+// ── 적용 ─────────────────────────────────────────────────────────────────────
+async function doApply() {
+  show('page-analyzing');
+  document.getElementById('progress-msg').textContent   = '재연결 적용 중...';
+  document.getElementById('progress-fname').textContent = '';
+
+  const choices = {};
+  document.querySelectorAll('#ask-list select').forEach(sel => {
+    if (sel.value) choices[sel.dataset.orig] = sel.value;
+  });
+
+  const res  = await fetch('/apply', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ choices }),
+  });
+  const data = await res.json();
+
+  if (data.error) { alert('오류: ' + data.error); show('page-review'); return; }
+
+  document.getElementById('done-detail').textContent =
+    `${data.relinked}개 연결됨  ·  ${data.missing}개 못 찾음\n저장: ${data.output.split('/').pop()}`;
+
+  document.getElementById('btn-open-folder').onclick = () =>
+    fetch('/open-folder', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ path: data.output }),
+    });
+
+  show('page-done');
+}
+
+function resetApp() {
+  projectPath = null;
+  show('page-idle');
+}
+</script>
+</body>
+</html>
