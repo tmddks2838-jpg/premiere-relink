@@ -154,7 +154,7 @@ MVP의 기본 데이터는 YouTube Data API의 공개 메타데이터다. 공식
 
 ### 자막/스크립트 처리
 
-YouTube Data API의 공식 captions 다운로드는 권한과 쿼터 제약이 크므로, 경쟁 채널 전체 분석의 필수 경로로 두지 않는다. MVP는 항상 메타데이터 기반 분석을 수행하고, 가능한 영상에 대해서만 공개 자막/스크립트 수집 모듈로 첫 30초 분석을 보강한다.
+YouTube Data API의 공식 captions 다운로드는 권한과 쿼터 제약이 크므로, 경쟁 채널 전체 분석의 필수 경로로 두지 않는다. MVP는 항상 메타데이터 기반 분석을 수행하고, 공개적으로 접근 가능한 자막/스크립트가 있는 영상에 대해서만 첫 30초 분석을 보강한다.
 
 자막 수집 실패는 전체 실패가 아니다. 결과에는 다음 상태를 표시한다.
 
@@ -296,7 +296,9 @@ AI 생성은 자유 서술이 아니라 구조화된 JSON을 먼저 만들고, U
 - 내 채널 맞춤 변형
 - 주의할 점
 
-### 기획안 JSON 스키마 초안
+### 기획안 JSON 스키마
+
+생성 결과는 `plans` 5개를 기본값으로 한다. 각 `plan`은 제목 후보 3개와 썸네일 후보 3개를 포함해야 한다.
 
 ```json
 {
@@ -305,6 +307,16 @@ AI 생성은 자유 서술이 아니라 구조화된 JSON을 먼저 만들고, U
       "concept": "string",
       "titles": ["string", "string", "string"],
       "thumbnails": [
+        {
+          "copy": "string",
+          "layout": "string",
+          "visual_emotion": "string"
+        },
+        {
+          "copy": "string",
+          "layout": "string",
+          "visual_emotion": "string"
+        },
         {
           "copy": "string",
           "layout": "string",
