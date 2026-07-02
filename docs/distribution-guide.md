@@ -1,8 +1,8 @@
 # Premiere Relink 설치 방법 (배포 페이지용)
 
-> 노션·블로그 등에 그대로 복사해서 쓰는 안내문.
+> ⚠️ 최신본은 `docs/notion-배포페이지.md` — 노션 게시용 최종본은 그쪽을 사용하세요.
 > `[📷 스크린샷 N]` 자리에 실제 화면 캡처를 끼워 넣으세요. (맨 아래 "스크린샷 찍는 법" 참고)
-> macOS Sequoia(15) 기준 · Apple Silicon(M칩) 맥 전용.
+> macOS Sequoia(15) 기준 · 인텔 + Apple Silicon(M칩) 맥 모두 지원 (universal2 빌드).
 
 ---
 
