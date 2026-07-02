@@ -3,8 +3,8 @@
 > 하루 시작 시 할 일을 적고, Claude에게 "TODO.md 읽고 첫 항목부터" 지시. 세션 끝에 "TODO.md 업데이트해줘".
 
 ## 진행 중 / 다음
-- [ ] 배포 채널 결정 (직접 배포 / 노션 안내 등) → 노션 안내문 초안: `docs/distribution-guide.md`
-- [ ] 설치안내 스크린샷 STEP3(그래도 열기) 1장 — 실제 사용자/직원 맥에서 캡처 필요 (STEP2 경고창은 `dist-assets/screenshots/`에 확보)
+- [ ] 배포: 구글 드라이브 결정됨 → 노션 게시 (최종본: `docs/notion-배포페이지.md`, Import로 올리기)
+- [ ] (선택) 설치안내 스크린샷 STEP3 "그래도 열기" 버튼 실물 1장 — 차단 상태인 직원 맥에서만 캡처 가능. 대체용 설정 화면 2장은 확보 (`dist-assets/screenshots/step3-*.png`, 전 세션 transcript에서 복구)
 - [ ] 커뮤니티 무료 배포 → 반응 보고 유료화($99 공증) 판단
 - [ ] (반응 오면) Windows 포팅 — 전제조건: 윈도우 PC + 윈도우産 .prproj 샘플. 엔진 경로처리(POSIX `/` 가정) 손봐야 함
 - [ ] 배포: CLI 버전 정리 (명령줄로 analyze/apply 실행)
