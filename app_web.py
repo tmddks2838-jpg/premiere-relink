@@ -126,7 +126,8 @@ def apply_route():
 def open_folder():
     path = request.get_json().get("path", "")
     if os.path.isfile(path):
-        os.system(f'open -R "{path}"')
+        # 리스트 인자로 셸을 거치지 않는다 (파일명 내 따옴표/세미콜론 주입 방지)
+        subprocess.run(["open", "-R", path], check=False)
     return jsonify({"ok": True})
 
 

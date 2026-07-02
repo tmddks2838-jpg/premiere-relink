@@ -196,6 +196,13 @@
 <script>
 let projectPath = null;
 
+// 신뢰할 수 없는 .prproj에서 온 경로 문자열을 HTML에 넣기 전 escape (XSS 방지)
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
 function show(id) {
   ['page-idle','page-analyzing','page-review','page-done']
     .forEach(p => document.getElementById(p).classList.add('hidden'));
@@ -281,12 +288,12 @@ async function startAnalyze(path) {
       const opts  = item.candidates.map(c => {
         const cf = c.path.split('/').pop();
         const cp = c.path.split('/').slice(-2, -1)[0] || '';
-        return `<option value="${c.path}">${cf}  ←  ${cp}/</option>`;
+        return `<option value="${esc(c.path)}">${esc(cf)}  ←  ${esc(cp)}/</option>`;
       }).join('');
       div.innerHTML = `
-        <div class="ask-fname">${fname}</div>
-        <div class="ask-path">${item.path}</div>
-        <select data-orig="${item.path}">
+        <div class="ask-fname">${esc(fname)}</div>
+        <div class="ask-path">${esc(item.path)}</div>
+        <select data-orig="${esc(item.path)}">
           <option value="">건너뜀 (재연결 안 함)</option>
           ${opts}
         </select>`;
