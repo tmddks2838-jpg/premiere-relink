@@ -6,3 +6,5 @@
 - tkinter(`app.py`) 폐기, Flask 웹 UI로 전환. (macOS Sequoia + 시스템 Python tkinter 8.5에서 Label 텍스트가 렌더링 안 됨)
 - 파일 선택은 osascript `choose file`만 사용하고 `tell application "System Events"` 래퍼는 **금지.** (Automation 권한 오류 발생)
 - ffprobe 탐색 순서: PyInstaller 번들 내부 → `~/.local/bin/ffprobe` → PATH. (`matcher.py:_ffprobe_bin()`)
+- 맥 배포는 유니버설 빌드(Intel+Apple Silicon)로 통일한다. (한국 편집자 인텔 맥 잔존 + AS 네이티브 둘 다 커버, Rosetta 의존 회피)
+- 서명/공증($99)은 무료 배포로 수요 검증 후 결정한다. 당장은 미서명 zip + "그래도 열기" 안내로 배포.

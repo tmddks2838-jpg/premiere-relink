@@ -69,8 +69,8 @@ xattr -cr "/Applications/Premiere Relink.app"
 애플 개발자 인증(연간 비용 발생)을 아직 받지 않아서 뜨는 경고입니다.
 원본 프로젝트와 영상 파일은 **절대 덮어쓰지 않고**, 재연결 결과는 항상 새 파일(`_relinked.prproj`)로 저장하며 작업 전 백업을 만듭니다.
 
-**Q. Windows나 인텔 맥에서도 되나요?**
-아직 **M칩(Apple Silicon) 맥 전용**입니다. Windows·인텔 맥은 준비 중입니다.
+**Q. 어떤 맥에서 되나요? Windows는요?**
+**인텔 맥과 M칩(Apple Silicon) 맥 모두** 지원합니다. Windows 버전은 준비 중입니다.
 
 ---
 ---

@@ -41,7 +41,7 @@ exe = EXE(
     console=False,      # 터미널 창 숨김
     disable_windowed_traceback=False,
     argv_emulation=True,
-    target_arch=None,
+    target_arch="universal2",   # Intel + Apple Silicon 모두 지원
     codesign_identity=None,
     entitlements_file=None,
 )
