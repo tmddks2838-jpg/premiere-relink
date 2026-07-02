@@ -4,10 +4,10 @@ import os
 FFPROBE = os.path.expanduser("~/.local/bin/ffprobe")
 
 a = Analysis(
-    ["app.py"],
+    ["app_web.py"],
     pathex=["."],
     binaries=[(FFPROBE, ".")] if os.path.isfile(FFPROBE) else [],
-    datas=[],
+    datas=[("templates", "templates")],
     hiddenimports=[
         "engine",
         "engine.pipeline",
@@ -17,10 +17,7 @@ a = Analysis(
         "engine.indexer",
         "engine.matcher",
         "engine.writer",
-        "tkinter",
-        "tkinter.ttk",
-        "tkinter.filedialog",
-        "tkinter.messagebox",
+        "flask",
     ],
     hookspath=[],
     hooksconfig={},
