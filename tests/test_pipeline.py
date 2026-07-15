@@ -18,8 +18,10 @@ def test_analyze_detects_folder_move(tmp_path):
     # 새 위치에 실제 파일 배치
     newdir = tmp_path / "moved"
     newdir.mkdir()
-    a = newdir / "a.mp4"; a.write_bytes(b"x" * 10)
-    b = newdir / "b.mov"; b.write_bytes(b"y" * 20)
+    a = newdir / "a.mp4"
+    a.write_bytes(b"x" * 10)
+    b = newdir / "b.mov"
+    b.write_bytes(b"y" * 20)
     # 프로젝트는 옛 경로(무제 폴더)를 참조
     proj = _make_project(tmp_path,
                          "/old/무제 폴더/moved/a.mp4",
@@ -30,7 +32,8 @@ def test_analyze_detects_folder_move(tmp_path):
 
 
 def test_apply_writes_relinked_and_backup(tmp_path):
-    newdir = tmp_path / "moved"; newdir.mkdir()
+    newdir = tmp_path / "moved"
+    newdir.mkdir()
     (newdir / "a.mp4").write_bytes(b"x" * 10)
     (newdir / "b.mov").write_bytes(b"y" * 20)
     proj = _make_project(tmp_path,
@@ -59,7 +62,8 @@ def test_apply_rewrites_boot_volume_raw_path(tmp_path):
     # 실제 프로젝트처럼 raw 경로에 /Volumes/Macintosh HD 접두가 붙어 있고,
     # 옛 위치(oldhome)엔 파일이 없으며 실제 파일은 newhome에 있는 상황.
     # 그 '날것의' 부트볼륨 문자열이 그대로 새 경로로 치환되어야 한다.
-    newhome = tmp_path / "newhome"; newhome.mkdir()
+    newhome = tmp_path / "newhome"
+    newhome.mkdir()
     (newhome / "a.mp4").write_bytes(b"x" * 10)
     (newhome / "b.mov").write_bytes(b"y" * 20)
     old = "/Volumes/Macintosh HD" + str(tmp_path / "oldhome")
@@ -77,7 +81,8 @@ def test_apply_rewrites_boot_volume_raw_path(tmp_path):
 
 
 def test_apply_refuses_to_overwrite_original(tmp_path):
-    newdir = tmp_path / "media"; newdir.mkdir()
+    newdir = tmp_path / "media"
+    newdir.mkdir()
     (newdir / "a.mp4").write_bytes(b"x" * 10)
     (newdir / "b.mov").write_bytes(b"y" * 20)
     proj = _make_project(tmp_path,

@@ -6,7 +6,6 @@ import os
 import json
 import subprocess
 import threading
-import webbrowser
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -132,7 +131,9 @@ def open_folder():
 
 
 def _open_browser():
-    import time; time.sleep(1.0)
+    import time
+
+    time.sleep(1.0)
     url = f"http://localhost:{PORT}"
     # macOS에서 가장 확실한 방법
     subprocess.run(["open", url])

@@ -7,3 +7,7 @@ requires-python = ">=3.9"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+
+[tool.ruff.lint.per-file-ignores]
+# scripts/는 sys.path 조작 후 engine을 import하는 실행 스크립트 — E402 허용
+"scripts/*" = ["E402"]
