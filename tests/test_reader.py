@@ -1,6 +1,6 @@
 # tests/test_reader.py
 import gzip
-from engine.reader import decompress_prproj, extract_media_refs, read_prproj
+from engine.reader import extract_media_refs, read_prproj
 from tests.conftest import make_prproj_xml
 
 
