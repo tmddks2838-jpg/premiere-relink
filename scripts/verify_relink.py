@@ -74,7 +74,7 @@ def _check_item(before: str, after: str, orig_dur: float | None) -> dict:
     # 이름 일치 (폴더 이동이면 같음, 이름 변경이면 다름)
     checks["name_match"] = (_name(before).lower() == _name(after).lower())
     if not checks["name_match"]:
-        flags.append(f"이름 변경 감지 — duration 매칭으로 연결됨")
+        flags.append("이름 변경 감지 — duration 매칭으로 연결됨")
 
     # 확장자 (타입은 같아도 확장자가 다를 수 있음)
     if checks["type_match"] and _ext(before) != _ext(after):
@@ -167,16 +167,16 @@ def verify(original_path: str, relinked_path: str) -> dict:
 
 def _to_markdown(report: dict) -> str:
     lines = [
-        f"# 재연결 검수 리포트",
-        f"",
+        "# 재연결 검수 리포트",
+        "",
         f"- 원본: `{report['original']}`",
         f"- 결과: `{report['relinked']}`",
         f"- 재연결: **{report['relinked_count']}개** | "
         f"의심: {report['suspicious']}개 | 경고: {report['warnings']}개",
         f"- **판정: {'✅ 승인' if report['verdict'] == 'approved' else '⚠️ 재확인 필요'}**",
-        f"",
-        f"## 항목별 결과",
-        f"",
+        "",
+        "## 항목별 결과",
+        "",
     ]
 
     icon = {"ok": "✅", "warning": "⚠️", "suspicious": "🚨"}

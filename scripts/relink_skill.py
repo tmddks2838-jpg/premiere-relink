@@ -8,7 +8,7 @@ import argparse
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from engine.pipeline import analyze, apply, RelinkPlan
+from engine.pipeline import analyze, apply
 from engine.models import Candidate
 
 
